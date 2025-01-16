@@ -25,11 +25,26 @@ def get_NID():
         NID = ["", ""]
     return NID
 
+def get_popup_pos(popup_width, popup_height):
+    root_x = app.winfo_x()  # 메인 창의 X 좌표
+    root_y = app.winfo_y()  # 메인 창의 Y 좌표
+    root_width = app.winfo_width()  # 메인 창의 너비
+    root_height = app.winfo_height()  # 메인 창의 높이
+
+    # 팝업 창 위치 계산 (메인 창 중심)
+    popup_x = root_x + (root_width // 2) - (popup_width // 2)
+    popup_y = root_y + (root_height // 2) - (popup_height // 2)
+    return popup_x, popup_y
+
 # 팝업창 생성 함수
 def open_popup():
     # 팝업 창 생성
+    popup_width, popup_height = 250, 150
+    popup_x, popup_y = get_popup_pos(popup_width, popup_height)
+    
     popup = ctk.CTkToplevel(app)
-    popup.geometry("250x150")
+    popup.geometry(f"{popup_width}x{popup_height}+{popup_x}+{popup_y}")
+        
     popup.title("NID 수정")
     popup.grab_set()  # 모달 창으로 설정 (메인 창 비활성화)
 
@@ -58,9 +73,12 @@ def open_popup():
         if not (NID_AUT == "" and NID_SES == ""):
             with open("NID.txt", "w") as f:
                 f.write(NID_AUT+" "+NID_SES)
+                
+            popup_width, popup_height = 100, 50
+            popup_x, popup_y = get_popup_pos(popup_width, popup_height)
             
             new_popup = ctk.CTkToplevel(app)
-            new_popup.geometry("100x50")
+            new_popup.geometry(f"{popup_width}x{popup_height}+{popup_x}+{popup_y}")
             new_popup.title("")
             new_popup.grab_set()
             label = ctk.CTkLabel(new_popup, text="저장완료")
@@ -71,26 +89,110 @@ def open_popup():
 
 def open_my_pay_log():
     webbrowser.open("https://game.naver.com/profile#cash")
+    
+def compute_difference(num):
+    # 입력된 숫자의 자리수 계산
+    num_digits = max(5, len(str(num)))
+    # 자리수보다 하나 큰 10의 거듭제곱 계산
+    power_of_ten = 10 ** num_digits
+    # 10의 거듭제곱에서 입력 숫자를 뺀 값 반환
+    return power_of_ten - num
+
+def display():
+    total = 0
+    row = 1
+    header = [["총합"],["채팅", "유료 보이스", "영상", "미션", "미션 상금쌓기"], ["후원뱃지 기준", "유료 보이스", "다음 뱃지까지 남은 치즈"]][button5_state]
+    for i, donation_type in enumerate(header):
+        label = ctk.CTkLabel(scrollable_frame, text=donation_type, width=100, height=20)
+        label.grid(row=0, column=i+1, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+        labels.append(label)
+        
+    if button5_state == 0:
+        app.geometry("450x400")
+        for channel_id, donation_data in sorted(total_pay_amount.items(), key= lambda item:sum(item[1].values()), reverse=True):
+            streamer_total = sum(donation_data.values())
+            total += streamer_total
+            url = "https://api.chzzk.naver.com/service/v1/channels/" + channel_id
+            streamer_name = requests.get(url, headers=headers).json()["content"]["channelName"]
+            label = ctk.CTkLabel(scrollable_frame, text=streamer_name, width=100, height=20)
+            label.grid(row=row, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            label = ctk.CTkLabel(scrollable_frame, text=streamer_total, width=100, height=20)
+            label.grid(row=row, column=1, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            row += 1
+            
+    elif button5_state == 1:
+        app.geometry("900x400")
+        for channel_id, donation_data in sorted(total_pay_amount.items(), key= lambda item:sum(item[1].values()), reverse=True):
+            streamer_total = sum(donation_data.values())
+            total += streamer_total
+            url = "https://api.chzzk.naver.com/service/v1/channels/" + channel_id
+            streamer_name = requests.get(url, headers=headers).json()["content"]["channelName"]
+            label = ctk.CTkLabel(scrollable_frame, text=streamer_name, width=100, height=20)
+            label.grid(row=row, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            column = 1
+            for donation_type in donation_data:
+                label = ctk.CTkLabel(scrollable_frame, text=donation_data[donation_type], width=100, height=20)
+                label.grid(row=row, column=column, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+                labels.append(label)
+                column += 1
+            row += 1
+    else:
+        app.geometry("700x400")
+        for channel_id, donation_data in sorted(total_pay_amount.items(), key= lambda item:sum(item[1].values()), reverse=True):
+            streamer_total = sum(donation_data.values())
+            total += streamer_total
+            url = "https://api.chzzk.naver.com/service/v1/channels/" + channel_id
+            streamer_name = requests.get(url, headers=headers).json()["content"]["channelName"]
+            label = ctk.CTkLabel(scrollable_frame, text=streamer_name, width=100, height=20)
+            label.grid(row=row, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            badge_base = streamer_total-donation_data["TTS"]
+            label = ctk.CTkLabel(scrollable_frame, text=badge_base, width=100, height=20)
+            label.grid(row=row, column=1, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            label = ctk.CTkLabel(scrollable_frame, text=donation_data["TTS"], width=100, height=20)
+            label.grid(row=row, column=2, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            label = ctk.CTkLabel(scrollable_frame, text=compute_difference(badge_base), text_color="red", width=100, height=20)
+            label.grid(row=row, column=3, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+            labels.append(label)
+            row += 1
+    label = ctk.CTkLabel(scrollable_frame, text="총합: %d"%total, width=100, height=20)
+    label.grid(row=row+2, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
+    labels.append(label)
 
 def calculate():
+    button2.configure(state="disabled")
+    button4.configure(state="disabled")
+    button5.configure(state="disabled")
     NID_AUT, NID_SES = get_NID()
     cookies = {"NID_AUT":NID_AUT, "NID_SES":NID_SES}
     
     try:
         content = get_content(0, 2023, cookies)
     except:
+        popup_width, popup_height = 200, 50
+        popup_x, popup_y = get_popup_pos(popup_width, popup_height)
+        
         new_popup = ctk.CTkToplevel(app)
-        new_popup.geometry("200x50")
+        new_popup.geometry(f"{popup_width}x{popup_height}+{popup_x}+{popup_y}")
         new_popup.title("오류!")
         new_popup.grab_set()
         label = ctk.CTkLabel(new_popup, text="NID가 없거나 잘못되었습니다.")
         label.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+        button2.configure(state="normal")
+        button4.configure(state="normal")
+        button5.configure(state="normal")
         return
     
     for i in labels:
         i.destroy()  # 라벨 파괴
     labels.clear()  # 리스트 비우기
     
+    global total_pay_amount
     total_pay_amount = {}
     for year in range(2023, time.localtime().tm_year+1):
         content = get_content(0, year, cookies)
@@ -102,42 +204,44 @@ def calculate():
             for data in get_content(i, year, cookies)["data"]:
                 channel_id = data["channelId"]
                 pay_amount = data["payAmount"]
+                donation_type = data["donationType"]
                 
-                if channel_id in total_pay_amount:
-                    total_pay_amount[channel_id] += pay_amount
-                else:
-                    total_pay_amount[channel_id] = pay_amount
-            label.destroy() 
-    
-    total = 0
-    row = 0
-    for channel_id, pay_amount in sorted(total_pay_amount.items(), key= lambda item:item[1], reverse=True):
-        total += pay_amount
-        url = "https://api.chzzk.naver.com/service/v1/channels/" + channel_id
-        streamer_name = requests.get(url, headers=headers).json()["content"]["channelName"]
-        # 라벨 추가 (2행 110열)
-        label = ctk.CTkLabel(scrollable_frame, text=streamer_name, width=100, height=20)
-        label.grid(row=row, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
-        labels.append(label)
-        label = ctk.CTkLabel(scrollable_frame, text=pay_amount, width=100, height=20)
-        label.grid(row=row, column=1, padx=5, pady=5)  # 그리드 레이아웃으로 배치
-        labels.append(label)
-        row += 1
-    label = ctk.CTkLabel(scrollable_frame, text="총합: %d"%total, width=100, height=20)
-    label.grid(row=row+2, column=0, padx=5, pady=5)  # 그리드 레이아웃으로 배치
-    labels.append(label)
+                if not channel_id in total_pay_amount:
+                    total_pay_amount[channel_id] = {"CHAT": 0, "TTS": 0, "VIDEO": 0, "MISSION": 0, "MISSION_PARTICIPATION": 0}
+                total_pay_amount[channel_id][donation_type] += pay_amount
+                
+            label.destroy()
+    display()
+    button2.configure(state="normal")
+    button4.configure(state="normal")
+    button5.configure(state="normal")
     
 def start_calculate():
     thread = threading.Thread(target=calculate)  # 작업을 백그라운드 스레드에서 실행
     thread.start()
-    
+
+def change_mode():
+    global button5_state
+    button5_state = (button5_state+1)%3
+    if button5_state == 0:
+        button5.configure(text="간단히 보기", fg_color="#1fa372", hover_color="#14714f")
+    elif button5_state == 1:
+        button5.configure(text="자세히 보기", fg_color="#a31f5f", hover_color="#711441")
+    else:
+        button5.configure(text="후원뱃지 기준", fg_color="#4f1fa3", hover_color="#361471")
+    for i in labels:
+        i.destroy()  # 라벨 파괴
+    labels.clear()  # 리스트 비우기
+    if not total_pay_amount == {}:
+        display()
+        
 # CustomTkinter 초기화
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
 # 메인 창 생성
 app = ctk.CTk()
-app.geometry("500x400")
+app.geometry("450x400")
 app.title("치즈 사용내역 총합 계산기")
 app.iconbitmap("icon.ico")
 
@@ -158,7 +262,12 @@ button3.pack(pady=10, padx=10, fill="x")
 button4 = ctk.CTkButton(menu_bar, text="치즈 사용내역 총합", command=start_calculate)
 button4.pack(pady=10, padx=10, fill="x")
 
+button5 = ctk.CTkButton(menu_bar, text="간단히 보기", command=change_mode, fg_color="#1fa372", hover_color="#14714f")
+button5.pack(pady=10, padx=10, fill="x")
+button5_state = 0
+
 labels = []
+total_pay_amount = {}
 
 # 프로그래스바 추가
 progress_bar = ctk.CTkProgressBar(menu_bar, width=150)
