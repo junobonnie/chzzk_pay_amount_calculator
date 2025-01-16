@@ -1,7 +1,6 @@
 # 치즈 사용내역 총합 계산기
 
-
-https://github.com/user-attachments/assets/84d076d1-ddfd-4d75-9c3b-299afced0543
+https://github.com/user-attachments/assets/364c25a3-6848-45a2-a525-a1be55a23c19
 
 ## 개발 동기
 ![1736742677789](https://github.com/user-attachments/assets/828f86b0-7b55-4f14-963b-8ecaa7eac6a7)
