@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/364c25a3-6848-45a2-a525-a1be55a23c19
  엣지 기준: `로그인한 치지직 화면 > F12 > 응용프로그램 > 쿠키`
 
 ## 다운로드 링크
-[Download for windows](https://github.com/junobonnie/chzzk_pay_amount_calculator/releases/download/v1.0/v1.0.zip)
+[Download for windows](https://github.com/junobonnie/chzzk_pay_amount_calculator/releases/download/v2.0/v2.0.zip)
 
 
 
